@@ -1,28 +1,22 @@
 package com.github
 
-import io.getquill.{PostgresAsyncContext, SnakeCase}
+import com.github.contexts.DefaultExecutionContext
+import com.github.databases.DefaultDatabase
+import com.github.repositories.FooRepository
 
 import scala.util.{Failure, Success}
 
-object Main extends App {
-  case class Foo(id: Int, name: String) extends Entity
+object Main extends App with DefaultExecutionContext with DefaultDatabase {
+  val barRepository = Repositories.repository[Foo]
+  val fooRepository = new FooRepository()
 
-  implicit val context = new PostgresAsyncContext[SnakeCase]("postgres")
-  implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
-
-  val foo = Repositories.repository[Foo](context, ec)
-  foo.find() onComplete {
-    case Success(result) => println(result)
+  fooRepository.findByName("Test #1") onComplete {
+    case Success(foo) => println(s"Foo: $foo")
     case Failure(cause) => println(cause)
   }
 
-  foo.find() onComplete {
-    case Success(result) => println(result)
-    case Failure(cause) => println(cause)
-  }
-
-  foo.find(10) onComplete {
-    case Success(result) => println(result)
+  barRepository find() onComplete {
+    case Success(bar) => println(s"Bar: $bar")
     case Failure(cause) => println(cause)
   }
 
